@@ -1,6 +1,9 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # exit on error
 set -o errexit
+
+# Исправляем окончания строк в самом скрипте (на случай если они CRLF)
+sed -i 's/\r$//' "$0" 2>/dev/null || true
 
 # Убеждаемся, что мы в корневой директории проекта
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
