@@ -56,4 +56,3 @@ python manage.py collectstatic --no-input
 
 # Применение миграций
 python manage.py migrate
-
