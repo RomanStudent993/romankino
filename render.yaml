@@ -17,4 +17,3 @@ services:
       name: kinopoisk-db
       databaseName: kinopoisk
       user: kinopoisk_user
-
