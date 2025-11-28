@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block title %}Список фильмов - Кинопоиск{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-filters {
+        background: rgba(30, 58, 95, 0.6);
+        padding: 25px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .search-form {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: end;
+    }
+
+    .form-group {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #90caf9;
+        font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #2a4a6e;
+        border-radius: 5px;
+        background: rgba(15, 37, 71, 0.8);
+        color: #e0e0e0;
+        font-size: 14px;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #64b5f6;
+        box-shadow: 0 0 10px rgba(100, 181, 246, 0.3);
+    }
+
+    .films-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+    }
+
+    .film-card {
+        background: linear-gradient(135deg, rgba(30, 58, 95, 0.8) 0%, rgba(15, 37, 71, 0.8) 100%);
+        border-radius: 10px;
+        overflow: hidden;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+
+    .film-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(100, 181, 246, 0.4);
+        border-color: #64b5f6;
+    }
+
+    .film-poster {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        background: linear-gradient(135deg, #1e3a5f 0%, #0f2547 100%);
+    }
+
+    .film-info {
+        padding: 15px;
+    }
+
+    .film-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: #e0e0e0;
+        margin-bottom: 8px;
+        line-height: 1.3;
+    }
+
+    .film-meta {
+        font-size: 12px;
+        color: #90a4ae;
+        margin-bottom: 5px;
+    }
+
+    .film-genres {
+        font-size: 11px;
+        color: #64b5f6;
+        margin-top: 8px;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-top: 40px;
+        flex-wrap: wrap;
+    }
+
+    .pagination a,
+    .pagination span {
+        padding: 10px 15px;
+        background: rgba(30, 58, 95, 0.6);
+        border-radius: 5px;
+        color: #e0e0e0;
+        text-decoration: none;
+        transition: all 0.3s;
+        border: 2px solid transparent;
+    }
+
+    .pagination a:hover {
+        background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+        border-color: #64b5f6;
+    }
+
+    .pagination .current {
+        background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+        border-color: #64b5f6;
+        font-weight: bold;
+    }
+
+    .no-films {
+        text-align: center;
+        padding: 60px 20px;
+        color: #90a4ae;
+        font-size: 18px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="search-filters">
+    <form method="get" class="search-form">
+        <div class="form-group">
+            <label for="search">Поиск по названию</label>
+            <input type="text" id="search" name="search" value="{{ search_query }}" placeholder="Введите название фильма...">
+        </div>
+        <div class="form-group">
+            <label for="genre">Жанр</label>
+            <select id="genre" name="genre">
+                <option value="">Все жанры</option>
+                {% for genre in genres %}
+                    <option value="{{ genre.id }}" {% if selected_genre == genre.id|stringformat:"s" %}selected{% endif %}>
+                        {{ genre.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn" style="width: 100%;">Поиск</button>
+        </div>
+    </form>
+</div>
+
+{% if page_obj %}
+    <div class="films-grid">
+        {% for film in page_obj %}
+            <a href="{% url 'movies:film_detail' film.pk %}" class="film-card">
+                {% if film.poster %}
+                    <img src="{{ film.poster.url }}" alt="{{ film.title }}" class="film-poster">
+                {% else %}
+                    <div class="film-poster" style="display: flex; align-items: center; justify-content: center; color: #90a4ae;">
+                        Нет постера
+                    </div>
+                {% endif %}
+                <div class="film-info">
+                    <div class="film-title">{{ film.title }}</div>
+                    {% if film.director %}
+                        <div class="film-meta">Режиссёр: {{ film.director.name }}</div>
+                    {% endif %}
+                    <div class="film-meta">Год: {{ film.release_date|date:"Y" }}</div>
+                    <div class="film-genres">
+                        {% for genre in film.genres.all|slice:":3" %}
+                            {{ genre.name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_genre %}&genre={{ selected_genre }}{% endif %}">« Первая</a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_genre %}&genre={{ selected_genre }}{% endif %}">‹ Предыдущая</a>
+            {% endif %}
+
+            <span class="current">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_genre %}&genre={{ selected_genre }}{% endif %}">Следующая ›</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_genre %}&genre={{ selected_genre }}{% endif %}">Последняя »</a>
+            {% endif %}
+        </div>
+    {% endif %}
+{% else %}
+    <div class="no-films">
+        Фильмы не найдены. Добавьте фильмы через админ-панель.
+    </div>
+{% endif %}
+{% endblock %}
+

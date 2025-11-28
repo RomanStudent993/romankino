@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ film.title }} - Кинопоиск{% endblock %}
+
+{% block extra_css %}
+<style>
+    .film-detail {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 40px;
+        margin-bottom: 50px;
+    }
+
+    .film-poster-large {
+        width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        background: linear-gradient(135deg, #1e3a5f 0%, #0f2547 100%);
+    }
+
+    .film-info-detail {
+        background: rgba(30, 58, 95, 0.6);
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .film-title-large {
+        font-size: 36px;
+        font-weight: bold;
+        color: #e0e0e0;
+        margin-bottom: 20px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .film-meta-item {
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(100, 181, 246, 0.2);
+    }
+
+    .film-meta-item:last-child {
+        border-bottom: none;
+    }
+
+    .meta-label {
+        font-size: 14px;
+        color: #90caf9;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .meta-value {
+        font-size: 16px;
+        color: #e0e0e0;
+    }
+
+    .film-description {
+        background: rgba(15, 37, 71, 0.6);
+        padding: 25px;
+        border-radius: 10px;
+        margin-top: 30px;
+        line-height: 1.8;
+        font-size: 16px;
+        color: #d0d0d0;
+    }
+
+    .similar-films {
+        margin-top: 50px;
+    }
+
+    .section-title {
+        font-size: 28px;
+        font-weight: bold;
+        color: #64b5f6;
+        margin-bottom: 25px;
+        text-shadow: 0 2px 10px rgba(100, 181, 246, 0.3);
+    }
+
+    .similar-films-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 20px;
+    }
+
+    .similar-film-card {
+        background: linear-gradient(135deg, rgba(30, 58, 95, 0.8) 0%, rgba(15, 37, 71, 0.8) 100%);
+        border-radius: 10px;
+        overflow: hidden;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+
+    .similar-film-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(100, 181, 246, 0.4);
+        border-color: #64b5f6;
+    }
+
+    .similar-film-poster {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        background: linear-gradient(135deg, #1e3a5f 0%, #0f2547 100%);
+    }
+
+    .similar-film-title {
+        padding: 10px;
+        font-size: 14px;
+        color: #e0e0e0;
+        text-align: center;
+        line-height: 1.3;
+    }
+
+    .back-link {
+        margin-bottom: 30px;
+    }
+
+    @media (max-width: 768px) {
+        .film-detail {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="back-link">
+    <a href="{% url 'movies:film_list' %}" class="btn">← Назад к списку</a>
+</div>
+
+<div class="film-detail">
+    <div>
+        {% if film.poster %}
+            <img src="{{ film.poster.url }}" alt="{{ film.title }}" class="film-poster-large">
+        {% else %}
+            <div class="film-poster-large" style="height: 450px; display: flex; align-items: center; justify-content: center; color: #90a4ae;">
+                Нет постера
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="film-info-detail">
+        <h1 class="film-title-large">{{ film.title }}</h1>
+
+        <div class="film-meta-item">
+            <div class="meta-label">Дата выхода</div>
+            <div class="meta-value">{{ film.release_date|date:"d.m.Y" }}</div>
+        </div>
+
+        {% if film.director %}
+        <div class="film-meta-item">
+            <div class="meta-label">Режиссёр</div>
+            <div class="meta-value">{{ film.director.name }}</div>
+        </div>
+        {% endif %}
+
+        {% if film.genres.all %}
+        <div class="film-meta-item">
+            <div class="meta-label">Жанры</div>
+            <div class="meta-value">
+                {% for genre in film.genres.all %}
+                    <span style="display: inline-block; background: rgba(100, 181, 246, 0.2); padding: 5px 12px; border-radius: 15px; margin-right: 8px; margin-bottom: 5px;">
+                        {{ genre.name }}
+                    </span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="film-description">
+            <div class="meta-label" style="margin-bottom: 15px;">Описание</div>
+            {{ film.description|linebreaks }}
+        </div>
+    </div>
+</div>
+
+{% if similar_films %}
+    <div class="similar-films">
+        <h2 class="section-title">Похожие фильмы</h2>
+        <div class="similar-films-grid">
+            {% for similar_film in similar_films %}
+                <a href="{% url 'movies:film_detail' similar_film.pk %}" class="similar-film-card">
+                    {% if similar_film.poster %}
+                        <img src="{{ similar_film.poster.url }}" alt="{{ similar_film.title }}" class="similar-film-poster">
+                    {% else %}
+                        <div class="similar-film-poster" style="display: flex; align-items: center; justify-content: center; color: #90a4ae; font-size: 12px;">
+                            Нет постера
+                        </div>
+                    {% endif %}
+                    <div class="similar-film-title">{{ similar_film.title }}</div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
